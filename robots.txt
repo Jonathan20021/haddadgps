@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /includes/
+Disallow: /assets/img/gallery/raw/
+
+Sitemap: https://haddadgps.com/sitemap.xml

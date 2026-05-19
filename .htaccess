@@ -1,0 +1,113 @@
+# ============================================
+#  Haddad GPS — Configuración Apache
+#  URLs limpias sin .php + seguridad + caché
+# ============================================
+
+# Página de error 404 personalizada
+# (en producción al raíz, cambia /haddadgps/404 por /404)
+ErrorDocument 404 /haddadgps/404
+
+# Habilitar follow symlinks, desactivar listado de directorios
+Options +FollowSymLinks -Indexes
+
+# ============================================
+# URLs LIMPIAS (sin .php)
+# ============================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # ----- 1) /index.php (en cualquier carpeta) → raíz de esa carpeta -----
+    # Para que /index.php redirija a /
+    RewriteCond %{THE_REQUEST} \s/+(.*?)index\.php[\s?] [NC]
+    RewriteRule ^ /%1 [R=301,L,NE]
+
+    # ----- 2) /algo.php → /algo  (redirección 301 para SEO) -----
+    RewriteCond %{THE_REQUEST} ^(?:GET|POST|HEAD)\s([^\s?]*?)\.php([?\s].*)?$ [NC]
+    RewriteRule \.php$ %1 [R=301,L,NE]
+
+    # ----- 3) /beneficio-xxx → /beneficio.php?slug=xxx -----
+    RewriteRule ^beneficio-([a-z0-9-]+)/?$ beneficio.php?slug=$1 [L,QSA]
+
+    # ----- 4) /algo → internamente sirve /algo.php -----
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+?)/?$ $1.php [L]
+
+    # ----- 4) Forzar HTTPS (descomenta en producción) -----
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # ----- 5) Redirigir www a no-www (descomenta en producción) -----
+    # RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+</IfModule>
+
+# ============================================
+# COMPRESIÓN GZIP
+# ============================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+    AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ============================================
+# CACHÉ DE NAVEGADOR
+# ============================================
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault                                "access plus 1 month"
+    ExpiresByType image/jpeg                      "access plus 1 year"
+    ExpiresByType image/png                       "access plus 1 year"
+    ExpiresByType image/gif                       "access plus 1 year"
+    ExpiresByType image/webp                      "access plus 1 year"
+    ExpiresByType image/svg+xml                   "access plus 1 year"
+    ExpiresByType image/x-icon                    "access plus 1 year"
+    ExpiresByType application/font-woff           "access plus 1 year"
+    ExpiresByType application/font-woff2          "access plus 1 year"
+    ExpiresByType font/woff                       "access plus 1 year"
+    ExpiresByType font/woff2                      "access plus 1 year"
+    ExpiresByType text/css                        "access plus 1 month"
+    ExpiresByType application/javascript          "access plus 1 month"
+    ExpiresByType text/javascript                 "access plus 1 month"
+    ExpiresByType text/html                       "access plus 0 seconds"
+</IfModule>
+
+# ============================================
+# CABECERAS DE SEGURIDAD
+# ============================================
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+</IfModule>
+
+# ============================================
+# PROTEGER ARCHIVOS SENSIBLES
+# ============================================
+<FilesMatch "^\.(htaccess|env|git|gitignore)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "^(config|functions)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ============================================
+# MIME TYPES
+# ============================================
+<IfModule mod_mime.c>
+    AddType image/svg+xml .svg
+    AddType image/webp    .webp
+</IfModule>
+
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ico)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
