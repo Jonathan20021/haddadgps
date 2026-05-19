@@ -1,41 +1,28 @@
 # ============================================
-#  Haddad GPS — Apache config
+#  Haddad GPS — Apache config (modo seguro)
 #  Producción: https://haddadgps.kyrosrd.com/
 # ============================================
 
-# ----- Error 404 personalizado -----
-# Producción (sitio en la raíz del dominio):
+# Error 404 personalizado (servido por /404.php)
 ErrorDocument 404 /404
-# Local (XAMPP en /haddadgps/): comenta la línea de arriba y descomenta esta:
-# ErrorDocument 404 /haddadgps/404
 
 # Habilitar follow symlinks, desactivar listado de directorios
 Options +FollowSymLinks -Indexes
 
 # Página de inicio por defecto
-DirectoryIndex index.php
+DirectoryIndex index.php index.html
 
 # ============================================
-# URLs LIMPIAS + HTTPS + canonicalización
+# URLs LIMPIAS (sin .php)
 # ============================================
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # ----- A) Forzar HTTPS (producción) -----
-    # Si Apache no soporta HTTPS=on (detrás de proxy), usar X-Forwarded-Proto
-    RewriteCond %{HTTPS} off
-    RewriteCond %{HTTP:X-Forwarded-Proto} !https
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-    # ----- B) Redirigir www → no-www -----
-    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
-
-    # ----- 1) /index.php (en cualquier carpeta) → raíz de esa carpeta -----
+    # ----- 1) /index.php → /  (canonical) -----
     RewriteCond %{THE_REQUEST} \s/+(.*?)index\.php[\s?] [NC]
     RewriteRule ^ /%1 [R=301,L,NE]
 
-    # ----- 2) /algo.php → /algo  (redirección 301 para SEO) -----
+    # ----- 2) /algo.php → /algo  (301 SEO) -----
     RewriteCond %{THE_REQUEST} ^(?:GET|POST|HEAD)\s([^\s?]*?)\.php([?\s].*)?$ [NC]
     RewriteRule \.php$ %1 [R=301,L,NE]
 
@@ -47,6 +34,16 @@ DirectoryIndex index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^(.+?)/?$ $1.php [L]
+
+    # ===== Bloque HTTPS (DESACTIVADO hasta que instales SSL en cPanel) =====
+    # Cuando tengas el certificado SSL activo, descomenta estas 3 líneas:
+    # RewriteCond %{HTTPS} off
+    # RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # ===== www → no-www (DESACTIVADO, no aplica a subdominios kyrosrd.com) =====
+    # RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 </IfModule>
 
 # ============================================
@@ -90,7 +87,6 @@ DirectoryIndex index.php
     Header set X-XSS-Protection "1; mode=block"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
     Header set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
-    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 
 # ============================================
