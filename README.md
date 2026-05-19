@@ -195,7 +195,41 @@ El proyecto usa URLs sin extensión `.php` gracias al `.htaccess`. Por ejemplo:
 - `/servicios` (no `/servicios.php`)
 - `/nosotros`, `/contacto`, `/cotizar`, etc.
 
-Si alguien entra a una URL con `.php`, el `.htaccess` redirige automáticamente con `301` a la versión limpia. En producción al raíz del dominio, cambia la línea `ErrorDocument 404 /haddadgps/404` a `ErrorDocument 404 /404`.
+Si alguien entra a una URL con `.php`, el `.htaccess` redirige automáticamente con `301` a la versión limpia.
+
+### Producción vs Local
+
+El proyecto está configurado por defecto para **producción** en:
+
+**https://haddadgps.kyrosrd.com/**
+
+Para **desarrollo local** (XAMPP en `/haddadgps/`), edita `.htaccess`:
+
+```apache
+# Cambiar esta línea:
+ErrorDocument 404 /404
+# Por esta:
+ErrorDocument 404 /haddadgps/404
+```
+
+Y comenta el bloque "Forzar HTTPS" (Apache local no usa HTTPS):
+
+```apache
+# RewriteCond %{HTTPS} off
+# RewriteCond %{HTTP:X-Forwarded-Proto} !https
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+```
+
+### Despliegue a producción
+
+1. Sube todos los archivos al servidor por FTP/cPanel.
+2. Verifica que el dominio `haddadgps.kyrosrd.com` apunte a la carpeta donde subiste los archivos.
+3. Activa HTTPS desde cPanel (Let's Encrypt suele ser gratuito).
+4. Edita `includes/config.php` y confirma:
+   - `SITE_URL` = `https://haddadgps.kyrosrd.com`
+   - `CONTACT_EMAIL` = correo real donde quieras recibir cotizaciones
+5. Envía el `sitemap.xml` a Google Search Console:
+   - URL: `https://haddadgps.kyrosrd.com/sitemap.xml`
 4. Si `mail()` no funciona en tu hosting compartido, revisa los logs y considera PHPMailer + SMTP.
 5. Para depurar en desarrollo, agrega temporalmente `error_reporting(E_ALL); ini_set('display_errors', 1);` al inicio de `cotizar.php`.
 

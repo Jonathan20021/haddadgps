@@ -273,8 +273,9 @@ $slug = $_GET['slug'] ?? '';
 $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
 
 if (!isset($benefits[$slug])) {
+    // Slug inválido → muestra la 404 (sin redirect para no cambiar URL)
     http_response_code(404);
-    header('Location: /haddadgps/404');
+    include __DIR__ . '/404.php';
     exit;
 }
 

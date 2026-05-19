@@ -19,7 +19,7 @@ define('SITE_NAME',        'Haddad GPS');
 define('SITE_LEGAL_NAME',  'Multiservicios Haddad S.R.L.');
 define('SITE_TAGLINE',     'Multiservicios Haddad · Haddad GPS · S.R.L.');
 define('SITE_SLOGAN',      'Asegura tu inversión con nosotros');
-define('SITE_URL',         'https://haddadgps.com'); // Cambia al dominio real
+define('SITE_URL',         'https://haddadgps.kyrosrd.com'); // URL de producción
 define('SITE_COUNTRY',     'República Dominicana');
 
 // ----- Contacto -----

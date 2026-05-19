@@ -4,4 +4,4 @@ Allow: /
 Disallow: /includes/
 Disallow: /assets/img/gallery/raw/
 
-Sitemap: https://haddadgps.com/sitemap.xml
+Sitemap: https://haddadgps.kyrosrd.com/sitemap.xml

@@ -1,23 +1,37 @@
 # ============================================
-#  Haddad GPS — Configuración Apache
-#  URLs limpias sin .php + seguridad + caché
+#  Haddad GPS — Apache config
+#  Producción: https://haddadgps.kyrosrd.com/
 # ============================================
 
-# Página de error 404 personalizada
-# (en producción al raíz, cambia /haddadgps/404 por /404)
-ErrorDocument 404 /haddadgps/404
+# ----- Error 404 personalizado -----
+# Producción (sitio en la raíz del dominio):
+ErrorDocument 404 /404
+# Local (XAMPP en /haddadgps/): comenta la línea de arriba y descomenta esta:
+# ErrorDocument 404 /haddadgps/404
 
 # Habilitar follow symlinks, desactivar listado de directorios
 Options +FollowSymLinks -Indexes
 
+# Página de inicio por defecto
+DirectoryIndex index.php
+
 # ============================================
-# URLs LIMPIAS (sin .php)
+# URLs LIMPIAS + HTTPS + canonicalización
 # ============================================
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # ----- A) Forzar HTTPS (producción) -----
+    # Si Apache no soporta HTTPS=on (detrás de proxy), usar X-Forwarded-Proto
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # ----- B) Redirigir www → no-www -----
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
     # ----- 1) /index.php (en cualquier carpeta) → raíz de esa carpeta -----
-    # Para que /index.php redirija a /
     RewriteCond %{THE_REQUEST} \s/+(.*?)index\.php[\s?] [NC]
     RewriteRule ^ /%1 [R=301,L,NE]
 
@@ -33,14 +47,6 @@ Options +FollowSymLinks -Indexes
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^(.+?)/?$ $1.php [L]
-
-    # ----- 4) Forzar HTTPS (descomenta en producción) -----
-    # RewriteCond %{HTTPS} off
-    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-    # ----- 5) Redirigir www a no-www (descomenta en producción) -----
-    # RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-    # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 </IfModule>
 
 # ============================================
@@ -84,6 +90,7 @@ Options +FollowSymLinks -Indexes
     Header set X-XSS-Protection "1; mode=block"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
     Header set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 
 # ============================================
